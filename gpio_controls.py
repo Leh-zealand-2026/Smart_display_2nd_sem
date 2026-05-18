@@ -6,7 +6,7 @@ from time import sleep
 # Buzzer
 buzzer = Buzzer(27)  # GPIO27, pin 13.
 
-def turnOnBuzzer():
+def turn_on_buzzer():
     buzzer.on()
     sleep(1)
     buzzer.off()
