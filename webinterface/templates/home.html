@@ -1,9 +1,87 @@
 <!DOCTYPE html>
-<html>
+<head>
+    <title>Smart Display</title>
+    <link rel="stylesheet" href="/static/webinterface/css/dashboard.css">
+</head>
 <body>
+    <main class="dashboard">
 
-<h1>Smart display</h1>
-<p>body text webpage test.</p>
+        <header class="top-bar">
+            <div>
+                <div class="clock">18:42</div>
+                <div class="date">Fredag, 15 Maj</div>
+            </div>
 
+            <div class="status">
+                <span>Forbundet til Wifi</span>
+                <span>Synced 2 min siden</span>
+            </div>
+        </header>
+
+        <section class="calendar card">
+            <div class="card-header">
+                <h1>Kalender</h1>
+                <span>Events i dag</span>
+            </div>
+
+            <div class="event today">
+                <div class="event-time">09:00</div>
+                <div>
+                    <h2>Undervisning K1.02</h2>
+                    <p>Indl. Systemer</p>
+                </div>
+            </div>
+
+            <div class="event">
+                <div class="event-time">12:30</div>
+                <div>
+                    <h2>Frokostpause</h2>
+                    <p>Pause</p>
+                </div>
+            </div>
+
+            <div class="event">
+                <div class="event-time">15:00</div>
+                <div>
+                    <h2>Fri</h2>
+                    <p>færdig for i dag</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="side-panel">
+
+            <section class="weather card">
+                <div>
+                    <h1>Vejrudsigt</h1>
+                    <p>Køge</p>
+                </div>
+                <div class="temperature">17°</div>
+                <p class="weather-desc">Regn</p>
+            </section>
+
+            <section class="notes card">
+                <div class="card-header">
+                    <h1>Opslag</h1>
+                    <span>3</span>
+                </div>
+
+                <ul>
+                    <li>Projektspecifikation</li>
+                    <li>Bestil hardware komponenter</li>
+                    <li>Begynd på design</li>
+                </ul>
+            </section>
+
+            <section class="alarm card">
+                <div>
+                    <h1>Alarm</h1>
+                    <p>21:05</p>
+                </div>
+            </section>
+
+        </aside>
+
+    </main>
 </body>
 </html>
