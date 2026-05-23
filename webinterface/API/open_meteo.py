@@ -65,10 +65,3 @@ def get_weather():
     }
 
     return weather
-
-weather = get_weather()
-
-print(f"Temperature: {weather['temperature']}°C")
-print(f"Humidity: {weather['humidity']}%")
-print(f"Wind speed: {weather['wind_speed']} m/s")
-print(f"Weather: {weather['weather_text']}")

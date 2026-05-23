@@ -52,13 +52,24 @@
         <aside class="side-panel">
 
             <section class="weather card">
-                <div>
-                    <h1>Vejrudsigt</h1>
-                    <p>Køge</p>
-                </div>
-                <div class="temperature">17°</div>
-                <p class="weather-desc">Regn</p>
-            </section>
+    <div>
+        <h1>Vejrudsigt</h1>
+        <p class="weather-location">Køge</p>
+    </div>
+
+    <div class="temperature">
+        <span id="weather-temperature">{{ weather.temperature }}</span>°
+    </div>
+
+    <p class="weather-desc" id="weather-text">
+        {{ weather.weather_text }}
+    </p>
+
+    <div class="weather-details">
+        <p>Fugtighed: <span id="weather-humidity">{{ weather.humidity }}</span>%</p>
+        <p>Vind: <span id="weather-wind">{{ weather.wind_speed }}</span> m/s</p>
+    </div>
+</section>
 
             <section class="notes card">
                 <div class="card-header">
@@ -83,5 +94,21 @@
         </aside>
 
     </main>
+<script>
+    async function updateWeather() {
+        try {
+            const response = await fetch("/api/weather/");
+            const weather = await response.json();
+
+            document.getElementById("weather-temperature").textContent = weather.temperature;
+            document.getElementById("weather-text").textContent = weather.weather_text;
+            document.getElementById("weather-humidity").textContent = weather.humidity;
+            document.getElementById("weather-wind").textContent = weather.wind_speed;
+        } catch (error) {
+            console.error("Error updating weather info:", error);
+        }
+    }
+    setInterval(updateWeather, 1800000);
+</script>
 </body>
 </html>
