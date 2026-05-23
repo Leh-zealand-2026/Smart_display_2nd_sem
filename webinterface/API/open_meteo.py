@@ -1,42 +1,74 @@
 import openmeteo_requests
-
-import pandas as pd
 import requests_cache
+
 from retry_requests import retry
 
-# Setup the Open-Meteo API client with cache and retry on error
-cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-openmeteo = openmeteo_requests.Client(session = retry_session)
 
-# Make sure all required weather variables are listed here
-# The order of variables in hourly or daily is important to assign them correctly below
-url = "https://api.open-meteo.com/v1/forecast"
-params = {
-	"latitude": 55.458,
-	"longitude": 12.1821,
-	"current": ["temperature_2m", "relative_humidity_2m", "rain", "wind_speed_10m", "wind_direction_10m"],
-	"wind_speed_unit": "ms",
-}
-responses = openmeteo.weather_api(url, params = params)
+def weather_code_name(code):
+    code = int(code)
 
-# Process first location. Add a for-loop for multiple locations or weather models
-response = responses[0]
-print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-print(f"Elevation: {response.Elevation()} m asl")
-print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+    if code == 0:
+        return "Sunny"
+    elif code in [1, 2]:
+        return "Partly cloudy"
+    elif code == 3:
+        return "Cloudy"
+    elif code in [45, 48]:
+        return "Foggy"
+    elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
+        return "Rainy"
+    elif code in [71, 73, 75]:
+        return "Snowy"
+    elif code == 95:
+        return "Thunderstorm"
+    else:
+        return "Unknown"
 
-# Process current data. The order of variables needs to be the same as requested.
-current = response.Current()
-current_temperature_2m = current.Variables(0).Value()
-current_relative_humidity_2m = current.Variables(1).Value()
-current_rain = current.Variables(2).Value()
-current_wind_speed_10m = current.Variables(3).Value()
-current_wind_direction_10m = current.Variables(4).Value()
 
-print(f"\nCurrent time: {current.Time()}")
-print(f"Current temperature_2m: {current_temperature_2m}")
-print(f"Current relative_humidity_2m: {current_relative_humidity_2m}")
-print(f"Current rain: {current_rain}")
-print(f"Current wind_speed_10m: {current_wind_speed_10m}")
-print(f"Current wind_direction_10m: {current_wind_direction_10m}")
+def get_weather():
+    cache_session = requests_cache.CachedSession(".cache", expire_after=1800)
+    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+    openmeteo = openmeteo_requests.Client(session=retry_session)
+
+    url = "https://api.open-meteo.com/v1/forecast"
+
+    params = {
+        "latitude": 55.458,
+        "longitude": 12.1821,
+        "current": [
+            "temperature_2m",
+            "relative_humidity_2m",
+            "wind_speed_10m",
+            "weather_code",
+        ],
+        "wind_speed_unit": "ms",
+        "timezone": "Europe/Copenhagen",
+    }
+
+    responses = openmeteo.weather_api(url, params=params)
+    response = responses[0]
+
+    current = response.Current()
+
+    current_temperature_2m = round(current.Variables(0).Value())
+    current_relative_humidity_2m = round(current.Variables(1).Value())
+    current_wind_speed_10m = round(current.Variables(2).Value(), 1)
+
+    current_weather_code = int(current.Variables(3).Value())
+    current_weather_text = weather_code_name(current_weather_code)
+
+    weather = {
+        "temperature": current_temperature_2m,
+        "humidity": current_relative_humidity_2m,
+        "wind_speed": current_wind_speed_10m,
+        "weather_text": current_weather_text,
+    }
+
+    return weather
+
+weather = get_weather()
+
+print(f"Temperature: {weather['temperature']}°C")
+print(f"Humidity: {weather['humidity']}%")
+print(f"Wind speed: {weather['wind_speed']} m/s")
+print(f"Weather: {weather['weather_text']}")
