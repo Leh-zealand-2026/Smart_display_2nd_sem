@@ -1,7 +1,9 @@
+{% load static %}
+
 <!DOCTYPE html>
 <head>
     <title>Smart Display</title>
-    <link rel="stylesheet" href="/static/webinterface/css/dashboard.css">
+    <link rel="stylesheet" href="{% static 'webinterface/css/dashboard.css' %}">
 </head>
 <body>
     <main class="dashboard">
@@ -18,36 +20,16 @@
             </div>
         </header>
 
-        <section class="calendar card">
-            <div class="card-header">
-                <h1>Kalender</h1>
-                <span>Events i dag</span>
-            </div>
+ <section class="calendar card">
+    <div class="card-header">
+        <h1>Kalender</h1>
+        <span id="calendar-status">Events i dag</span>
+    </div>
 
-            <div class="event today">
-                <div class="event-time">09:00</div>
-                <div>
-                    <h2>Undervisning K1.02</h2>
-                    <p>Indl. Systemer</p>
-                </div>
-            </div>
-
-            <div class="event">
-                <div class="event-time">12:30</div>
-                <div>
-                    <h2>Frokostpause</h2>
-                    <p>Pause</p>
-                </div>
-            </div>
-
-            <div class="event">
-                <div class="event-time">15:00</div>
-                <div>
-                    <h2>Fri</h2>
-                    <p>færdig for i dag</p>
-                </div>
-            </div>
-        </section>
+    <div id="calendar-events">
+        <p>Indlæser kalender...</p>
+    </div>
+</section>
 
         <aside class="side-panel">
 
@@ -109,6 +91,81 @@
         }
     }
     setInterval(updateWeather, 1800000);
+</script>
+
+
+<script>
+    function formatEventTime(startValue) {
+        if (!startValue) {
+            return "";
+        }
+
+        if (!startValue.includes("T")) {
+            return "Hele dagen";
+        }
+
+        const date = new Date(startValue);
+
+        return date.toLocaleTimeString("da-DK", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function isToday(startValue) {
+        const eventDate = new Date(startValue);
+        const today = new Date();
+
+        return (
+            eventDate.getFullYear() === today.getFullYear() &&
+            eventDate.getMonth() === today.getMonth() &&
+            eventDate.getDate() === today.getDate()
+        );
+    }
+
+    async function updateCalendar() {
+        try {
+            const response = await fetch("/api/calendar/");
+            const data = await response.json();
+
+            const calendarContainer = document.getElementById("calendar-events");
+            const calendarStatus = document.getElementById("calendar-status");
+
+            calendarContainer.innerHTML = "";
+
+            const todaysEvents = data.events.filter(event => isToday(event.start));
+
+            calendarStatus.textContent = `${todaysEvents.length} events i dag`;
+
+            if (todaysEvents.length === 0) {
+                calendarContainer.innerHTML = "<p>Ingen events i dag</p>";
+                return;
+            }
+
+            todaysEvents.forEach((event, index) => {
+                const eventElement = document.createElement("div");
+                eventElement.className = index === 0 ? "event today" : "event";
+
+                eventElement.innerHTML = `
+                    <div class="event-time">${formatEventTime(event.start)}</div>
+                    <div>
+                        <h2>${event.title}</h2>
+                        <p>${event.location || "Kalender event"}</p>
+                    </div>
+                `;
+
+                calendarContainer.appendChild(eventElement);
+            });
+
+        } catch (error) {
+            console.error("Error updating calendar:", error);
+            document.getElementById("calendar-events").innerHTML =
+                "<p>Kunne ikke indlæse kalender</p>";
+        }
+    }
+
+    updateCalendar();
+    setInterval(updateCalendar, 300000);
 </script>
 </body>
 </html>
