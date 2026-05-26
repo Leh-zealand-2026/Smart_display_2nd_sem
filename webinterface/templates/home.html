@@ -53,25 +53,22 @@
     </div>
 </section>
 
-            <section class="notes card">
-                <div class="card-header">
-                    <h1>Opslag</h1>
-                    <span>3</span>
-                </div>
+    <section class="notes card">
+    <div class="card-header">
+        <h1>Opslag</h1>
+        <span id="notes-count">0</span>
+    </div>
 
-                <ul>
-                    <li>Projektspecifikation</li>
-                    <li>Bestil hardware komponenter</li>
-                    <li>Begynd på design</li>
-                </ul>
-            </section>
+    <form id="note-form">
+        {% csrf_token %}
+        <input type="text" id="note-input" placeholder="Skriv en note..." maxlength="255">
+        <button type="submit">Gem</button>
+    </form>
 
-            <section class="alarm card">
-                <div>
-                    <h1>Alarm</h1>
-                    <p>21:05</p>
-                </div>
-            </section>
+    <ul id="notes-list">
+        <li>Indlæser noter...</li>
+    </ul>
+</section>
 
         </aside>
 
@@ -90,6 +87,7 @@
             console.error("Error updating weather info:", error);
         }
     }
+    updateWeather();
     setInterval(updateWeather, 1800000);
 </script>
 
@@ -166,6 +164,117 @@
 
     updateCalendar();
     setInterval(updateCalendar, 300000);
+</script>
+<script>
+    function getCsrfToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value;
+    }
+
+    async function loadNotes() {
+        const notesList = document.getElementById("notes-list");
+        const notesCount = document.getElementById("notes-count");
+
+        notesList.innerHTML = "<li>Indlæser noter...</li>";
+
+        try {
+            const response = await fetch("/api/notes/");
+
+            if (!response.ok) {
+                throw new Error("Notes API returned " + response.status);
+            }
+
+            const data = await response.json();
+
+            notesList.innerHTML = "";
+            notesCount.textContent = data.notes.length;
+
+            if (data.notes.length === 0) {
+                notesList.innerHTML = "<li>Ingen noter endnu</li>";
+                return;
+            }
+
+            data.notes.forEach(note => {
+                const li = document.createElement("li");
+
+                const textSpan = document.createElement("span");
+                textSpan.textContent = note.text;
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Slet";
+                deleteButton.onclick = function () {
+                    deleteNote(note.id);
+                };
+
+                li.appendChild(textSpan);
+                li.appendChild(deleteButton);
+
+                notesList.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error loading notes:", error);
+            notesList.innerHTML = "<li>Kunne ikke indlæse noter</li>";
+        }
+    }
+
+    async function addNote(event) {
+        event.preventDefault();
+
+        const noteInput = document.getElementById("note-input");
+        const text = noteInput.value.trim();
+
+        if (text === "") {
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/notes/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    text: text
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not save note");
+            }
+
+            noteInput.value = "";
+            loadNotes();
+
+        } catch (error) {
+            console.error("Error saving note:", error);
+        }
+    }
+
+    async function deleteNote(noteId) {
+        try {
+            const response = await fetch(`/api/notes/${noteId}/delete/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not delete note");
+            }
+
+            loadNotes();
+
+        } catch (error) {
+            console.error("Error deleting note:", error);
+        }
+    }
+
+    document.getElementById("note-form").addEventListener("submit", addNote);
+
+    loadNotes();
 </script>
 </body>
 </html>
