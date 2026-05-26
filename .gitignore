@@ -7,3 +7,6 @@ __pycache__
 .env
 .google_credentials/
 token.json
+.cache.sqlite
+.cache.sqlite-*
+staticfiles/
