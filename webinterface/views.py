@@ -22,7 +22,18 @@ def home(request):
 
 
 def weather_api(request):
-    weather = get_weather()
+    try:
+        weather = get_weather()
+    except Exception as error:
+        print("Kunne ikke hente data:", error)
+
+        weather = {
+            "temperature": "-",
+            "weather_text": "Kunne ikke hente data from meteo weather api",
+            "humidity": "-",
+            "wind_speed": "-"
+        }
+
     return JsonResponse(weather)
 
 def calendar_events(request):
