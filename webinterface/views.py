@@ -57,3 +57,19 @@ def notes_api(request):
 def delete_note_api(request, note_id):
     deleted = remove_note(note_id)
     return JsonResponse({"deleted": deleted})
+
+
+@require_POST
+def alarm_buzzer_api(request):
+    try:
+        from gpio_controls import turn_on_buzzer
+
+        turn_on_buzzer()
+
+        return JsonResponse({"success": True})
+
+    except Exception as error:
+        return JsonResponse({
+            "success": False,
+            "error": str(error)
+        }, status=500)

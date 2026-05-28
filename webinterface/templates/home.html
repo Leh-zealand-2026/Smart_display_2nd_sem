@@ -71,18 +71,19 @@
 
     </main>
 
-    <dialog id="alarm-dialog" class="alarm-dialog">
-        <form method="dialog" class="alarm-form">
-            <h2>Sæt alarm</h2>
+<dialog id="alarm-dialog" class="alarm-dialog">
+    <form method="dialog" class="alarm-form">
+        <h2>Sæt alarm</h2>
 
-            <input type="time" id="alarm-time">
+        <input type="time" id="alarm-time">
 
-            <div class="alarm-actions">
-                <button type="button" id="save-alarm">Gem</button>
-                <button type="submit">Luk</button>
-            </div>
-        </form>
-    </dialog>
+        <div class="alarm-actions">
+            <button type="button" id="save-alarm">Gem</button>
+            <button type="button" id="delete-alarm">Slet alarm</button>
+            <button type="submit">Fortryd</button>
+        </div>
+    </form>
+</dialog>
 
     <script>
         async function updateWeather() {
@@ -322,76 +323,111 @@
         loadNotes();
     </script>
 
-    <script>
-        let alarmTime = localStorage.getItem("alarmTime") || "";
-        let alarmTriggeredToday = "";
+ <script>
+    let alarmTime = localStorage.getItem("alarmTime") || "";
+    let alarmTriggeredToday = "";
 
-        function updateClock() {
-            const now = new Date();
+    function getCurrentTimeValue(date) {
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
 
-            document.getElementById("local-time").textContent =
-                now.toLocaleTimeString("da-DK", {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                });
-
-            document.getElementById("local-date").textContent =
-                now.toLocaleDateString("da-DK", {
-                    weekday: "short",
-                    day: "2-digit",
-                    month: "short"
-                });
-
-            checkAlarm(now);
-        }
-
-function updateAlarmLabel() {
-    const alarmLabel = document.getElementById("alarm-label");
-    const alarmButton = document.getElementById("alarm-button");
-
-    if (alarmTime) {
-        alarmLabel.textContent = `⏰ ${alarmTime}`;
-        alarmButton.classList.add("alarm-set");
-    } else {
-        alarmLabel.textContent = "";
-        alarmButton.classList.remove("alarm-set");
+        return `${hours}:${minutes}`;
     }
-}
 
-        function checkAlarm(now) {
-            if (!alarmTime) {
-                return;
-            }
+    function updateClock() {
+        const now = new Date();
 
-            const currentTime = now.toLocaleTimeString("da-DK", {
-                hour: "2-digit",
-                minute: "2-digit"
+        document.getElementById("local-time").textContent = getCurrentTimeValue(now);
+
+        document.getElementById("local-date").textContent =
+            now.toLocaleDateString("da-DK", {
+                weekday: "short",
+                day: "2-digit",
+                month: "short"
             });
 
-            const todayKey = now.toISOString().slice(0, 10);
+        checkAlarm(now);
+    }
 
-            if (currentTime === alarmTime && alarmTriggeredToday !== todayKey) {
-                alarmTriggeredToday = todayKey;
-                alert("Alarm!");
-            }
+    function updateAlarmLabel() {
+        const alarmLabel = document.getElementById("alarm-label");
+        const alarmButton = document.getElementById("alarm-button");
+
+        if (alarmTime) {
+            alarmLabel.textContent = `⏰ ${alarmTime}`;
+            alarmButton.classList.add("alarm-set");
+        } else {
+            alarmLabel.textContent = "";
+            alarmButton.classList.remove("alarm-set");
+        }
+    }
+
+    function checkAlarm(now) {
+        if (!alarmTime) {
+            return;
         }
 
-        document.getElementById("alarm-button").addEventListener("click", function () {
-            document.getElementById("alarm-time").value = alarmTime;
-            document.getElementById("alarm-dialog").showModal();
-        });
+        const currentTime = getCurrentTimeValue(now);
+        const todayKey = now.toISOString().slice(0, 10);
 
-        document.getElementById("save-alarm").addEventListener("click", function () {
-            alarmTime = document.getElementById("alarm-time").value;
+        if (currentTime === alarmTime && alarmTriggeredToday !== todayKey) {
+            alarmTriggeredToday = todayKey;
+            triggerAlarm();
+        }
+    }
+
+async function triggerAlarm() {
+    await triggerBuzzer();
+
+    alarmTime = "";
+    localStorage.removeItem("alarmTime");
+    updateAlarmLabel();
+}
+
+    async function triggerBuzzer() {
+        try {
+            await fetch("/api/alarm-buzzer/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken()
+                }
+            });
+        } catch (error) {
+            console.error("Could not trigger buzzer:", error);
+        }
+    }
+
+    document.getElementById("alarm-button").addEventListener("click", function () {
+        document.getElementById("alarm-time").value = alarmTime;
+        document.getElementById("alarm-dialog").showModal();
+    });
+
+    document.getElementById("save-alarm").addEventListener("click", function () {
+        alarmTime = document.getElementById("alarm-time").value;
+
+        if (alarmTime) {
             localStorage.setItem("alarmTime", alarmTime);
-            updateAlarmLabel();
-            document.getElementById("alarm-dialog").close();
-        });
+        }
 
-        updateClock();
         updateAlarmLabel();
+        document.getElementById("alarm-dialog").close();
+    });
 
-        setInterval(updateClock, 1000);
-    </script>
+    document.getElementById("delete-alarm").addEventListener("click", function () {
+        alarmTime = "";
+        alarmTriggeredToday = "";
+
+        localStorage.removeItem("alarmTime");
+
+        document.getElementById("alarm-time").value = "";
+        updateAlarmLabel();
+        document.getElementById("alarm-dialog").close();
+    });
+
+    updateClock();
+    updateAlarmLabel();
+
+    setInterval(updateClock, 1000);
+</script>
 </body>
 </html>
