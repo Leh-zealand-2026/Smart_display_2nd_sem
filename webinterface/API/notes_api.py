@@ -1,15 +1,15 @@
-from django.db.models import Max
+import json
+
 from webinterface.models import Note
 
 
 def get_notes():
-    notes = Note.objects.all()
+    notes = Note.objects.filter(is_archived=False).order_by("-is_pinned", "-id")
 
     return [
         {
             "id": note.id,
             "text": note.text,
-            "position": note.position,
         }
         for note in notes
     ]
@@ -21,17 +21,11 @@ def add_note(text):
     if text == "":
         return None
 
-    last_position = Note.objects.aggregate(Max("position"))["position__max"] or 0
-
-    note = Note.objects.create(
-        text=text,
-        position=last_position + 1
-    )
+    note = Note.objects.create(text=text)
 
     return {
         "id": note.id,
         "text": note.text,
-        "position": note.position,
     }
 
 

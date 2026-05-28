@@ -37,7 +37,7 @@ def weather_api(request):
     return JsonResponse(weather)
 
 def calendar_events(request):
-    events = get_upcoming_events(max_results=10)
+    events = get_upcoming_events(max_results=10, days_ahead=7)
     return JsonResponse({"events": events})
 
 def notes_api(request):

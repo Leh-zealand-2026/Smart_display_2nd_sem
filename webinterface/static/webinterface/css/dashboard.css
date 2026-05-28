@@ -19,37 +19,8 @@ body {
     padding: 12px;
     display: grid;
     grid-template-columns: 1.45fr 0.85fr;
-    grid-template-rows: 72px 1fr;
+    grid-template-rows: 1fr;
     gap: 12px;
-}
-
-.top-bar {
-    grid-column: 1 / 3;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 6px;
-}
-
-.clock {
-    font-size: 42px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.date {
-    font-size: 15px;
-    color: #aeb4c0;
-    margin-top: 4px;
-}
-
-.status {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-    font-size: 14px;
-    color: #f7f8fa;
 }
 
 .card {
@@ -87,84 +58,158 @@ p {
 }
 
 .calendar {
+    min-height: 0;
+    overflow: hidden;
+}
+
+#calendar-events {
+    max-height: calc(100% - 40px);
     overflow: hidden;
 }
 
 .event {
     display: grid;
-    grid-template-columns: 72px 1fr;
-    gap: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
+    grid-template-columns: 76px 72px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
     border-radius: 14px;
     background: #000207;
 }
 
-.event.today {
-    border-left: 5px solid #6ea8fe;
-    background: #000207;
+.event-day {
+    font-size: 14px;
+    font-weight: 700;
+    color: #aeb4c0;
 }
 
 .event-time {
-    font-size: 19px;
+    font-size: 17px;
     font-weight: 700;
     color: #ffffff;
 }
 
+.event h2,
+.event p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Right panel */
 .side-panel {
     display: grid;
-    grid-template-rows: 120px 1fr 78px;
+    grid-template-rows: 135px minmax(0, 1fr);
     gap: 12px;
     min-height: 0;
 }
 
 .weather {
-    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px;
+    gap: 10px;
+    min-height: 0;
+    overflow: hidden;
 }
 
-.temperature {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-    font-size: 42px;
-    font-weight: 700;
+.weather-left {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.weather-location {
+    margin-top: 2px;
 }
 
 .weather-desc {
-    margin-top: 18px;
+    margin-top: 8px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.weather-details {
+    margin-top: 8px;
+}
+
+.weather-details p {
+    font-size: 13px;
+    line-height: 1.25;
+}
+
+.weather-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.temperature {
+    font-size: 40px;
+    font-weight: 700;
+    text-align: right;
+    line-height: 1;
+}
+
+.weather-clock {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    background: #0a1c57;
+    color: #ffffff;
+    padding: 7px 9px;
+    text-align: right;
+    display: grid;
+    gap: 2px;
+}
+
+.weather-clock.alarm-set {
+    background: #138a36;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+#local-time {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#local-date {
+    font-size: 12px;
+    color: #aeb4c0;
+}
+
+#alarm-label {
+    font-size: 11px;
+    color: #6ea8fe;
 }
 
 .notes {
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.notes .card-header {
+    flex-shrink: 0;
 }
 
 .notes h1 {
     font-size: 24px;
 }
 
-.notes ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.notes li {
-    padding: 9px 0;
-    font-size: 22px;
-    border-bottom: 1px solid #2d3242;
-}
-
 #note-form {
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 #note-input {
     flex: 1;
     min-width: 0;
-    height: 24px;
+    height: 30px;
     font-size: 16px;
     padding: 0 10px;
     border: none;
@@ -172,7 +217,7 @@ p {
 }
 
 #note-form button[type="submit"] {
-    height: 24px;
+    height: 30px;
     font-size: 16px;
     padding: 0 12px;
     border: none;
@@ -182,13 +227,60 @@ p {
     font-weight: 700;
 }
 
-.alarm {
-    display: flex;
-    align-items: center;
+#notes-list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.alarm p {
-    font-size: 26px;
+#notes-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 18px;
+    border-bottom: 1px solid #2d3242;
+}
+
+#notes-list li span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#notes-list li button {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 8px;
+    background: #ffffff;
+    color: #0a1c57;
     font-weight: 700;
-    color: #ffffff;
+}
+
+.alarm-dialog {
+    border: none;
+    border-radius: 16px;
+    padding: 18px;
+    background: #0a1c57;
+    color: white;
+}
+
+.alarm-form {
+    display: grid;
+    gap: 12px;
+}
+
+.alarm-form input {
+    font-size: 24px;
+}
+
+.alarm-actions {
+    display: flex;
+    gap: 8px;
 }

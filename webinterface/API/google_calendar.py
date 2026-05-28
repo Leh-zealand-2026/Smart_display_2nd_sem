@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from django.conf import settings
 
@@ -37,14 +37,17 @@ def get_calendar_service():
     return build("calendar", "v3", credentials=creds)
 
 
-def get_upcoming_events(max_results=10):
+def get_upcoming_events(max_results=30, days_ahead=7):
+
     service = get_calendar_service()
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(days=days_ahead)
 
     result = service.events().list(
         calendarId="primary",
-        timeMin=now,
+        timeMin=now.isoformat(),
+        timeMax=end_time.isoformat(),
         maxResults=max_results,
         singleEvents=True,
         orderBy="startTime",
