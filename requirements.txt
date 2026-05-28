@@ -51,3 +51,4 @@ url-normalize==3.0.0
 urllib3==2.7.0
 urllib3-future==2.20.907
 wassima==2.1.0
+mysqlclient
